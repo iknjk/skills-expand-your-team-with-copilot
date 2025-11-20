@@ -474,6 +474,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Function to create share URLs for an activity
+  function createShareUrls(name, details) {
+    const formattedSchedule = formatSchedule(details);
+    const currentUrl = window.location.origin + window.location.pathname;
+    
+    // Create share text
+    const shareText = `Check out ${name} at Mergington High School!`;
+    const shareDescription = `${details.description} - Schedule: ${formattedSchedule}`;
+    const fullShareText = `${shareText} ${shareDescription}`;
+    
+    return {
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(fullShareText)}&url=${encodeURIComponent(currentUrl)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}&quote=${encodeURIComponent(fullShareText)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`,
+      email: `mailto:?subject=${encodeURIComponent(shareText)}&body=${encodeURIComponent(fullShareText + '\n\n' + currentUrl)}`
+    };
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -571,6 +589,21 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="social-share-container">
+        <span class="social-share-label">Share:</span>
+        <a href="#" class="social-share-button twitter" data-activity="${name}" title="Share on Twitter" aria-label="Share on Twitter">
+          𝕏
+        </a>
+        <a href="#" class="social-share-button facebook" data-activity="${name}" title="Share on Facebook" aria-label="Share on Facebook">
+          f
+        </a>
+        <a href="#" class="social-share-button linkedin" data-activity="${name}" title="Share on LinkedIn" aria-label="Share on LinkedIn">
+          in
+        </a>
+        <a href="#" class="social-share-button email" data-activity="${name}" title="Share via Email" aria-label="Share via Email">
+          ✉
+        </a>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -588,6 +621,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add click handlers for social share buttons
+    const shareUrls = createShareUrls(name, details);
+    const shareButtons = activityCard.querySelectorAll(".social-share-button");
+    
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        const platform = button.classList.contains("twitter") ? "twitter" :
+                        button.classList.contains("facebook") ? "facebook" :
+                        button.classList.contains("linkedin") ? "linkedin" : "email";
+        
+        if (platform === "email") {
+          // For email, use mailto directly
+          window.location.href = shareUrls[platform];
+        } else {
+          // For social media, open in new window
+          window.open(shareUrls[platform], "_blank", "width=600,height=400");
+        }
+      });
+    });
 
     activitiesList.appendChild(activityCard);
   }
